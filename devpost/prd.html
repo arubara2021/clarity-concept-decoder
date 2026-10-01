@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clarity | PRD Review</title>
+  <style>
+    :root {
+      --bg: #1a1815;
+      --surface: #232019;
+      --surface-2: #29251f;
+      --border: #33302a;
+      --text: #ede8e0;
+      --muted: #8a8375;
+      --amber: #e8a33d;
+      --danger: #b96d5d;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.6 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .page {
+      width: min(1080px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 42px 0 80px;
+    }
+
+    .eyebrow {
+      color: var(--amber);
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      line-height: 1.12;
+      letter-spacing: -.025em;
+    }
+
+    h1 {
+      margin-top: 14px;
+      font-size: clamp(3rem, 8vw, 6rem);
+      font-weight: 700;
+    }
+
+    h2 {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+    }
+
+    h3 {
+      font-size: 1.05rem;
+    }
+
+    .lede {
+      max-width: 680px;
+      margin: 20px 0 28px;
+      color: var(--muted);
+      font-size: 1.15rem;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      color: var(--amber);
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .section {
+      margin-top: 68px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 28px;
+      margin-bottom: 20px;
+    }
+
+    .section-head p {
+      max-width: 430px;
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .journey {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .step {
+      position: relative;
+      min-height: 150px;
+      padding: 20px 16px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .step::after {
+      content: "→";
+      position: absolute;
+      right: -13px;
+      top: 50%;
+      z-index: 1;
+      color: var(--amber);
+      font-size: 1.4rem;
+    }
+
+    .step:last-child::after {
+      display: none;
+    }
+
+    .step-num {
+      color: var(--amber);
+      font-size: .75rem;
+      font-weight: 700;
+    }
+
+    .step h3 {
+      margin-top: 20px;
+    }
+
+    .step p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.4;
+    }
+
+    .panel {
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    details {
+      border-bottom: 1px solid var(--border);
+      padding: 20px 24px;
+    }
+
+    details:last-child {
+      border-bottom: 0;
+    }
+
+    summary {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      cursor: pointer;
+      list-style: none;
+      font-weight: 700;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary::after {
+      content: "+";
+      color: var(--amber);
+      font-size: 1.3rem;
+      line-height: 1;
+    }
+
+    details[open] summary::after {
+      content: "−";
+    }
+
+    details p,
+    details ul {
+      max-width: 780px;
+      margin: 13px 0 0;
+      color: var(--muted);
+    }
+
+    .contract {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .audience {
+      padding: 22px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .audience h3 {
+      color: var(--amber);
+    }
+
+    .audience p {
+      margin: 10px 0 0;
+      color: var(--muted);
+    }
+
+    .criteria {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .criterion {
+      padding: 18px 20px;
+      border-left: 3px solid var(--amber);
+      background: var(--surface);
+    }
+
+    .criterion strong {
+      display: block;
+    }
+
+    .criterion span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+    }
+
+    .callout {
+      margin-top: 18px;
+      padding: 22px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+
+    footer {
+      margin-top: 64px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: .82rem;
+    }
+
+    @media (max-width:800px) {
+      .journey {
+        grid-template-columns: 1fr;
+      }
+
+      .step {
+        min-height: 0;
+      }
+
+      .step::after {
+        content: "↓";
+        right: 50%;
+        top: auto;
+        bottom: -19px;
+      }
+
+      .contract,
+      .criteria {
+        grid-template-columns: 1fr;
+      }
+
+      .section-head {
+        display: block;
+      }
+
+      .section-head p {
+        margin-top: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <div class="eyebrow">Devpost Learn / Product requirements</div>
+    <h1>Clarity</h1>
+    <p class="lede">A single-page concept decoder that turns dense text into a usable mental model for students,
+      research scholars, and developers.</p>
+    <span class="status">Draft for review</span>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>The complete journey</h2>
+        <p>Scope said “translate dense text.” The PRD makes each visible transition and recovery path explicit.</p>
+      </div>
+      <div class="journey">
+        <article class="step">
+          <div class="step-num">01</div>
+          <h3>Arrive</h3>
+          <p>See the logo, tagline, input, audience controls, and empty results state.</p>
+        </article>
+        <article class="step">
+          <div class="step-num">02</div>
+          <h3>Prepare</h3>
+          <p>Paste text and confirm one of three exact audience labels.</p>
+        </article>
+        <article class="step">
+          <div class="step-num">03</div>
+          <h3>Decode</h3>
+          <p>See the loading action and four skeleton cards immediately.</p>
+        </article>
+        <article class="step">
+          <div class="step-num">04</div>
+          <h3>Understand</h3>
+          <p>Read four sections as they stream in a fixed order.</p>
+        </article>
+        <article class="step">
+          <div class="step-num">05</div>
+          <h3>Recover</h3>
+          <p>Retry only missing content while preserving the source and completed work.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>Audience contract</h2>
+        <p>These labels are product behavior, not decorative filters. Each establishes a different explanation promise.
+        </p>
+      </div>
+      <div class="contract">
+        <article class="audience">
+          <h3>Student</h3>
+          <p>Warm and analogy-heavy. Assumes no domain background. Explains <em>what</em> and <em>why</em>.</p>
+        </article>
+        <article class="audience">
+          <h3>Executive</h3>
+          <p>Crisp and outcome-focused. Assumes business literacy. Explains <em>so what</em> and <em>what to do</em>.
+          </p>
+        </article>
+        <article class="audience">
+          <h3>Developer (Non-ML)</h3>
+          <p>Technically precise. Assumes software fluency, not ML fluency. Explains <em>how it works</em> with
+            engineering analogies.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>Behavior reveals</h2>
+        <p>Open a section to inspect the requirements behind the screen states.</p>
+      </div>
+      <div class="panel">
+        <details open>
+          <summary>Input and audience selection</summary>
+          <p>The text remains editable at all times. Student is selected by default. Empty submission shows “Please
+            paste some text to decode.” without starting generation. Changing audience preserves input and existing
+            results.</p>
+        </details>
+        <details>
+          <summary>Streaming success</summary>
+          <p>Decode becomes “Decoding...” and disables. Four skeleton cards appear immediately while the input stays
+            unlocked. TL;DR, The Analogy, Jargon Buster, and The One Thing to Remember fill in progressively and in that
+            fixed order.</p>
+        </details>
+        <details>
+          <summary>Stale results</summary>
+          <p>Editing the source after a result exists leaves the current result visible and adds “Results out of date.”
+            A later Decode uses the current source and audience.</p>
+        </details>
+        <details>
+          <summary>Partial recovery</summary>
+          <p>Completed cards stay. The active failed card becomes an inline error with “Retry this section.” A second
+            failure exposes “Retry full decode.” The final takeaway always has an explicit recovery path.</p>
+        </details>
+        <details>
+          <summary>Global failure</summary>
+          <p>If the service is unreachable, the results area becomes one retryable error state. The source text and
+            selected audience are never cleared.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>Proof of success</h2>
+        <p>The build is complete when these behaviors can be observed in the one-minute demonstration.</p>
+      </div>
+      <div class="criteria">
+        <div class="criterion"><strong>One focused surface</strong><span>A user can complete the full loop without
+            navigating to another page.</span></div>
+        <div class="criterion"><strong>Four meaningful outputs</strong><span>Each result has the correct title and role:
+            summary, analogy, terms, takeaway.</span></div>
+        <div class="criterion"><strong>Files become editable text</strong><span>PDF and TXT drops extract into the input
+            without starting Decode.</span></div>
+        <div class="criterion"><strong>Relationships become visible</strong><span>A fifth Concept Map renders validated
+            nodes and edges below the cards.</span></div>
+        <div class="criterion"><strong>Public pages become sources</strong><span>A safe public HTML URL extracts into
+            editable text without starting Decode.</span></div>
+        <div class="criterion"><strong>Audience changes tone</strong><span>The exact selected label is preserved and
+            produces its defined explanation style.</span></div>
+        <div class="criterion"><strong>Progress feels immediate</strong><span>Loading state and skeletons appear before
+            streamed content arrives.</span></div>
+        <div class="criterion"><strong>Failure preserves work</strong><span>Completed cards, input, and audience survive
+            a partial or global failure.</span></div>
+        <div class="criterion"><strong>The demo lands</strong><span>The supplied ML paragraph becomes something a non-ML
+            developer can explain.</span></div>
+      </div>
+      <div class="callout"><strong>Visual direction:</strong> warm near-black background, warm charcoal surfaces, soft
+        off-white text, and one scarce amber accent reserved for the logo mark, active audience, and Decode action. No
+        gradients, glow, neon, purple, or pure white.</div>
+    </section>
+
+    <footer>Canonical source: <strong>devpost/prd.md</strong> &middot; Review state: draft</footer>
+  </main>
+</body>
+
+</html>
