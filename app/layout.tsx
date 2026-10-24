@@ -1,29 +1,45 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
+import { AppProviders } from "@/components/providers/app-providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Clarity | Understand anything, at your level",
-  description: "Translate dense ideas into a mental model you can use.",
+    title: "Clarity — Understand anything, at your level",
+    description:
+        "Turn dense text into a structured mental model. TL;DR, analogy, jargon translation, takeaway, concept map, and a private local library.",
+    keywords: [
+        "concept decoder",
+        "plain english explainer",
+        "concept map",
+        "reading assistant",
+        "local first",
+    ],
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
-  return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
-    </html>
-  );
+export const viewport: Viewport = {
+    themeColor: "#000000",
+    width: "device-width",
+    initialScale: 1,
+};
+
+export default function RootLayout({
+    children,
+}: Readonly<{
+    children: React.ReactNode;
+}>) {
+    return (
+        <html
+            lang="en"
+            data-scroll-behavior="smooth"
+            suppressHydrationWarning
+        >
+            <body
+                className={`${inter.className} bg-[var(--bg-0)] text-[var(--text-0)] antialiased`}
+            >
+                <AppProviders>{children}</AppProviders>
+            </body>
+        </html>
+    );
 }

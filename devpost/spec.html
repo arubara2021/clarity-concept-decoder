@@ -1,450 +1,608 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Clarity - Technical Spec</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Clarity | Technical Spec</title>
-    <style>
-        :root {
-            --bg: #1a1815;
-            --surface: #232019;
-            --surface-2: #29251f;
-            --border: #33302a;
-            --text: #ede8e0;
-            --muted: #8a8375;
-            --amber: #e8a33d;
-            --danger: #b96d5d;
-        }
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
 
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            background: var(--bg);
-            color: var(--text);
-            font: 16px/1.6 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        }
-
-        .page {
-            width: min(1120px, calc(100% - 40px));
-            margin: 0 auto;
-            padding: 42px 0 80px;
-        }
-
-        .eyebrow {
-            color: var(--amber);
-            font-size: .72rem;
-            font-weight: 700;
-            letter-spacing: .14em;
-            text-transform: uppercase;
-        }
-
-        h1,
-        h2,
-        h3 {
-            margin: 0;
-            line-height: 1.12;
-            letter-spacing: -.025em;
-        }
-
-        h1 {
-            margin-top: 14px;
-            font-size: clamp(3rem, 8vw, 6rem);
-        }
-
-        h2 {
-            font-size: clamp(1.8rem, 4vw, 2.8rem);
-        }
-
-        h3 {
-            font-size: 1.02rem;
-        }
-
-        .lede {
-            max-width: 730px;
-            margin: 20px 0 28px;
-            color: var(--muted);
-            font-size: 1.15rem;
-        }
-
-        .status {
-            display: inline-block;
-            padding: 5px 10px;
-            border: 1px solid var(--border);
-            color: var(--amber);
-            font-size: .72rem;
-            font-weight: 700;
-            letter-spacing: .1em;
-            text-transform: uppercase;
-        }
-
-        .section {
-            margin-top: 68px;
-        }
-
-        .section-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: end;
-            gap: 28px;
-            margin-bottom: 20px;
-        }
-
-        .section-head p {
-            max-width: 470px;
-            margin: 0;
-            color: var(--muted);
-        }
-
-        .flow {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            align-items: stretch;
-        }
-
-        .node {
-            position: relative;
-            min-height: 156px;
-            padding: 20px 16px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-        }
-
-        .node::after {
-            content: "→";
-            position: absolute;
-            right: -13px;
-            top: 50%;
-            z-index: 1;
-            color: var(--amber);
-            font-size: 1.4rem;
-        }
-
-        .node:last-child::after {
-            display: none;
-        }
-
-        .num {
-            color: var(--amber);
-            font-size: .75rem;
-            font-weight: 700;
-        }
-
-        .node h3 {
-            margin-top: 20px;
-        }
-
-        .node p {
-            margin: 8px 0 0;
-            color: var(--muted);
-            font-size: .88rem;
-            line-height: 1.4;
-        }
-
-        .panel {
-            border: 1px solid var(--border);
-            background: var(--surface);
-        }
-
-        details {
-            border-bottom: 1px solid var(--border);
-            padding: 20px 24px;
-        }
-
-        details:last-child {
-            border-bottom: 0;
-        }
-
-        summary {
-            display: flex;
-            justify-content: space-between;
-            gap: 20px;
-            cursor: pointer;
-            list-style: none;
-            font-weight: 700;
-        }
-
-        summary::-webkit-details-marker {
-            display: none;
-        }
-
-        summary::after {
-            content: "+";
-            color: var(--amber);
-            font-size: 1.3rem;
-            line-height: 1;
-        }
-
-        details[open] summary::after {
-            content: "−";
-        }
-
-        details p,
-        details ul {
-            max-width: 820px;
-            margin: 13px 0 0;
-            color: var(--muted);
-        }
-
-        .contract {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .card {
-            padding: 22px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-        }
-
-        .card h3 {
-            color: var(--amber);
-        }
-
-        .card p {
-            margin: 10px 0 0;
-            color: var(--muted);
-        }
-
-        .tree {
-            overflow: auto;
-            padding: 22px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--muted);
-            font: 14px/1.8 ui-monospace, SFMono-Regular, Consolas, monospace;
-            white-space: pre;
-        }
-
-        .callout {
-            padding: 22px;
-            border: 1px solid var(--border);
-            background: var(--surface-2);
-        }
-
-        code {
-            color: var(--amber);
-            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-        }
-
-        footer {
-            margin-top: 64px;
-            padding-top: 18px;
-            border-top: 1px solid var(--border);
-            color: var(--muted);
-            font-size: .82rem;
-        }
-
-        @media (max-width:820px) {
-            .flow {
-                grid-template-columns: 1fr;
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
             }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
 
-            .node {
-                min-height: 0;
-            }
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
 
-            .node::after {
-                content: "↓";
-                right: 50%;
-                top: auto;
-                bottom: -19px;
-            }
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
 
-            .contract {
-                grid-template-columns: 1fr;
-            }
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
 
-            .section-head {
-                display: block;
-            }
+.markdown-alert>:first-child {
+  margin-top: 0
+}
 
-            .section-head p {
-                margin-top: 10px;
-            }
-        }
-    </style>
-</head>
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
 
-<body>
-    <main class="page">
-        <div class="eyebrow">Devpost Learn / Technical blueprint</div>
-        <h1>Clarity</h1>
-        <p class="lede">A type-safe Next.js app that streams an audience-aware concept translation from Google Gemini
-            to four result cards.</p>
-        <span class="status">Draft for review</span>
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
 
-        <section class="section">
-            <div class="section-head">
-                <h2>How the pieces talk</h2>
-                <p>The browser never sees the provider key. Next.js route handlers are the secure bridge between the
-                    interface and Gemini.</p>
-            </div>
-            <div class="flow">
-                <article class="node">
-                    <div class="num">01 / BROWSER</div>
-                    <h3>Input</h3>
-                    <p>Text, audience, controls, card state.</p>
-                </article>
-                <article class="node">
-                    <div class="num">02 / NEXT.JS</div>
-                    <h3>Validate</h3>
-                    <p>Zod-check text, audience, and retry section.</p>
-                </article>
-                <article class="node">
-                    <div class="num">03 / GEMINI</div>
-                    <h3>Generate</h3>
-                    <p>OpenAI-compatible chat completion with streaming.</p>
-                </article>
-                <article class="node">
-                    <div class="num">04 / AI SDK</div>
-                    <h3>Stream</h3>
-                    <p>Turn model output into a typed UI stream.</p>
-                </article>
-                <article class="node">
-                    <div class="num">05 / BROWSER</div>
-                    <h3>Reveal</h3>
-                    <p>Fill skeletons in fixed order; preserve retries.</p>
-                </article>
-            </div>
-        </section>
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
 
-        <section class="section">
-            <div class="section-head">
-                <h2>Planned components</h2>
-                <p>Each component has one job and a clear home in the file tree.</p>
-            </div>
-            <div class="contract">
-                <article class="card">
-                    <h3>app/page.tsx</h3>
-                    <p>Typed page composition: header, textarea, audience controls, action, and result region.
-                    </p>
-                </article>
-                <article class="card">
-                    <h3>Tailwind + globals.css</h3>
-                    <p>Warm charcoal tokens, responsive layout, skeletons, cards, stale badge, and recovery states.
-                    </p>
-                </article>
-                <article class="card">
-                    <h3>components/*.tsx</h3>
-                    <p>Typed page state, AI SDK stream consumption, progressive rendering, stale detection, and retries.
-                    </p>
-                </article>
-                <article class="card">
-                    <h3>app/api/*/route.ts</h3>
-                    <p>Zod validation, Gemini model call, AI SDK stream response, and recovery errors.</p>
-                </article>
-            </div>
-        </section>
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
 
-        <section class="section">
-            <div class="section-head">
-                <h2>Journey reveals</h2>
-                <p>Open a behavior to see how the product requirement maps into the system.</p>
-            </div>
-            <div class="panel">
-                <details open>
-                    <summary>Full decode</summary>
-                    <p>The typed client sends <code>{ text, audience }</code> to <code>POST /api/decode</code>. The
-                        Next.js
-                        route validates with Zod, builds the audience-aware prompt, calls <code>streamText</code>, and
-                        returns the AI SDK stream. The browser fills TL;DR, Analogy, Jargon Buster,
-                        and Takeaway in order.</p>
-                </details>
-                <details>
-                    <summary>Section retry</summary>
-                    <p>The failed card keeps the current source and audience. Its retry control sends
-                        <code>{ text, audience, section }</code> to <code>POST /api/retry-section</code>. Only that card
-                        returns to streaming; completed cards are untouched.
-                    </p>
-                </details>
-                <details>
-                    <summary>Secrets and boundaries</summary>
-                    <p>The Gemini key exists only in the server environment. <code>.env</code> is ignored,
-                        <code>.env.example</code> contains names only, and the browser never calls Gemini directly.
-                        There is no database or cross-session storage.
-                    </p>
-                </details>
-                <details>
-                    <summary>One useful first check</summary>
-                    <p>Before building the UI pipeline, verify a fresh restricted Google AI Studio key, a currently
-                        available fast model, free-tier quota, and one minimal streaming request. The provider contract
-                        is documented, but account and quota availability can change.</p>
-                </details>
-            </div>
-        </section>
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
 
-        <section class="section">
-            <div class="section-head">
-                <h2>Application shape</h2>
-                <p>The complete planned tree, kept intentionally small.</p>
-            </div>
-            <div class="tree">Clarity/
-                ├── app/
-                │ ├── api/decode/route.ts # Full streaming decode
-                │ ├── api/retry-section/route.ts # Section retry
-                │ ├── layout.tsx # Root shell and metadata
-                │ ├── page.tsx # Main Clarity page
-                │ └── globals.css # Tailwind layers and tokens
-                ├── components/ # Typed input, cards, recovery UI
-                ├── lib/ # AI setup, prompts, types, Zod schemas
-                ├── package.json # Scripts and dependencies
-                ├── tsconfig.json # Strict TypeScript configuration
-                ├── tailwind.config.ts # Tailwind design tokens
-                ├── .env.example # Secret-free configuration names
-                ├── .env # Local secret values, ignored by Git
-                ├── .gitignore
-                └── devpost/ # Planning and learning artifacts</div>
-        </section>
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
 
-        <section class="section">
-            <div class="section-head">
-                <h2>Provider contract</h2>
-                <p>Google Gemini through the Vercel AI SDK keeps the chosen streaming architecture type-safe.
-                </p>
-            </div>
-            <div class="callout"><strong>Base URL:</strong>
-                <code>@ai-sdk/google</code><br><strong>Request:</strong> route handler, Zod-validated input,
-                <code>streamText</code>,
-                server-side API key, and a configured Gemini model.<br><strong>Docs:</strong> <a
-                    href="https://ai-sdk.dev/docs" style="color:var(--amber)">AI SDK</a>, <a
-                    href="https://ai-sdk.dev/providers/ai-sdk-providers/google-generative-ai"
-                    style="color:var(--amber)">Google provider</a>, and <a href="https://zod.dev/"
-                    style="color:var(--amber)">Zod</a>.
-            </div>
-        </section>
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
 
-        <section class="section">
-            <div class="section-head">
-                <h2>Scope-change architecture</h2>
-                <p>Two new paths deepen the explanation without adding a separate service.</p>
-            </div>
-            <div class="contract">
-                <article class="card">
-                    <h3>/api/upload</h3>
-                    <p>Accepts PDF/TXT multipart uploads, extracts text with native decoding or <code>pdf-parse</code>,
-                        and returns editable text.</p>
-                </article>
-                <article class="card">
-                    <h3>Concept Map</h3>
-                    <p>Gemini returns validated nodes and edges after the four cards; React Flow renders the interactive
-                        relationship layer.</p>
-                </article>
-                <article class="card">
-                    <h3>/api/fetch-url</h3>
-                    <p>Safely fetches public HTML, rejects private or unsupported destinations, and returns editable
-                        readable text.</p>
-                </article>
-            </div>
-        </section>
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
 
-        <footer>Canonical source: <strong>devpost/spec.md</strong> &middot; Review state: draft</footer>
-    </main>
-</body>
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
 
-</html>
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <span id="markdown-mermaid" aria-hidden="true" data-config="{&quot;darkModeTheme&quot;:&quot;vscode&quot;,&quot;lightModeTheme&quot;:&quot;vscode&quot;,&quot;maxTextSize&quot;:50000,&quot;clickDrag&quot;:&quot;alt&quot;,&quot;showControls&quot;:&quot;onHoverOrFocus&quot;,&quot;resizable&quot;:true,&quot;maxHeight&quot;:&quot;&quot;}"></span>
+				<hr>
+<h2 id="doc-specstatus-draft">doc: spec
+status: draft</h2>
+<h1 id="clarity---technical-spec">Clarity - Technical Spec</h1>
+<h2 id="how-this-works-in-plain-language">How This Works, In Plain Language</h2>
+<p>Clarity is a Next.js application that runs entirely in the browser by default. Nothing leaves the user's machine unless they explicitly ask for it.</p>
+<p>The system has four layers:</p>
+<ul>
+<li>The <strong>React browser UI</strong> renders the warm single-page interface, owns all page state, streams generated text into four result cards, and stores every completed decode in the browser's IndexedDB.</li>
+<li>The <strong>Next.js route handlers</strong> run on the server only for operations the browser cannot do safely or legally: calling Gemini with a protected API key, fetching public HTML from arbitrary origins, and writing a shared decode to the cloud database.</li>
+<li>The <strong>Gemini provider</strong> turns the user's source text and selected audience into four explanation sections plus a concept graph, streamed section by section.</li>
+<li>The <strong>share layer</strong> is a single Neon Postgres table behind two routes. It exists only so a user can turn one local decode into a link. It holds no accounts, no sessions, and no user identity beyond an unguessable share ID.</li>
+</ul>
+<p>The default path never touches a server beyond the Gemini call. A user pastes text, drops a PDF or TXT file, or pastes a public URL. Files are parsed locally in the browser. URLs are fetched by the server because the browser's cross-origin policy blocks arbitrary fetch. The user reviews the extracted text, chooses an audience, and clicks Decode. The client streams four sections from <code>POST /api/decode</code>, then stores the completed result in IndexedDB. If the user later clicks Share, the client sends that one result to <code>POST /api/share</code>, receives a short ID, and constructs a link.</p>
+<p>The tradeoff is that two different storage layers coexist. IndexedDB holds the user's own library and is the source of truth for everything they see. Neon holds only shared decodes, and only because a link must be reachable from another browser. This keeps the open-source, accountless, privacy-respecting character of a local-first tool while still allowing a share feature.</p>
+<h2 id="the-core-journey-through-the-system">The Core Journey Through the System</h2>
+<p>Implements <code>prd.md &gt; The Core Journey</code>.</p>
+<ol>
+<li>Next.js renders <code>app/page.tsx</code> with the shell, source input, audience controls, Decode action, and the local library drawer.</li>
+<li>The user supplies source text in one of three ways:
+<ul>
+<li>Pastes text directly into the textarea. State lives in React memory until Decode.</li>
+<li>Drops a <code>.pdf</code> or <code>.txt</code> file. The client parses it locally: <code>.txt</code> via <code>FileReader</code>, <code>.pdf</code> via the browser build of <code>pdfjs-dist</code>. Extracted text replaces the textarea contents. No network request occurs.</li>
+<li>Pastes a public <code>http</code> or <code>https</code> URL and clicks Extract. The client sends <code>{ url }</code> to <code>POST /api/fetch-url</code>, which performs the safe fetch and readability extraction server-side and returns text plus source metadata.</li>
+</ul>
+</li>
+<li>The user confirms or changes the audience. <code>Student</code> is selected by default. Labels are exactly <code>Student</code>, <code>Executive</code>, and <code>Developer (Non-ML)</code>.</li>
+<li>The user clicks Decode. The client validates non-empty text, checks the per-session decode budget in <code>localStorage</code>, disables the button, keeps the textarea editable, renders four skeleton cards, and calls <code>POST /api/decode</code> with <code>{ text, audience }</code>.</li>
+<li>The route handler reads <code>GEMINI_API_KEY</code> from the server environment, validates the body with Zod, and streams four sections via the Vercel AI SDK, then a graph event, then done.</li>
+<li>The client consumes the stream, identifies the active section from the <code>section-start</code> event, and appends token text into the correct card. Completed cards remain visible while later sections stream.</li>
+<li>On <code>done</code>, the client restores the Decode button and writes the completed result to IndexedDB under a generated local ID, storing the source text, audience, all four sections, the graph, and a timestamp.</li>
+<li>If the user edits the source after results exist, the results remain visible and a <code>Results out of date</code> badge appears. A later Decode replaces them with a fresh result and a new library entry.</li>
+<li>If a section fails mid-stream, the route emits <code>section-error</code> for that section. Completed cards persist. The failed card becomes a retry card with <code>Retry this section</code> and, on a second failure, <code>Retry full decode</code>. The client calls <code>POST /api/retry-section</code> with <code>{ text, audience, section }</code>.</li>
+<li>If the whole service is unreachable, the client renders a single global error state with <code>Try again</code>. Source text and audience are preserved.</li>
+<li>The user can open the local library at any time, search it, reopen a past decode read-only, or delete it.</li>
+<li>The user can share one decode by clicking Share on that result. The client sends the result to <code>POST /api/share</code>, receives a short ID and a delete token, and displays the link. The delete token is stored alongside the local entry so the user can revoke the share later.</li>
+</ol>
+<h2 id="stack">Stack</h2>
+<ul>
+<li><strong>Framework:</strong> Next.js App Router, with UI and server route handlers in one TypeScript project.</li>
+<li><strong>Language:</strong> TypeScript with strict mode enabled.</li>
+<li><strong>API contracts:</strong> Next.js route handlers provide the literal <code>/api/decode</code>, <code>/api/retry-section</code>, <code>/api/fetch-url</code>, and <code>/api/share</code> paths. Shared TypeScript types and Zod schemas keep request contracts type-safe. tRPC is not used.</li>
+<li><strong>Validation:</strong> Zod schemas validate every route body before any work begins.</li>
+<li><strong>AI integration:</strong> Vercel AI SDK <code>streamText</code> and <code>generateObject</code> with <code>@ai-sdk/google</code> and a configurable Gemini model.</li>
+<li><strong>Styling:</strong> Tailwind CSS 4 with CSS variables for the warm charcoal design tokens.</li>
+<li><strong>Motion:</strong> <code>motion</code> (formerly Framer Motion) for choreographed streaming, card entry, skeleton transitions, and command palette reveal.</li>
+<li><strong>Client-side file parsing:</strong> <code>pdfjs-dist</code> browser build for digital PDFs; native <code>FileReader</code> for TXT. No server upload route exists.</li>
+<li><strong>URL extraction:</strong> server-side <code>fetch</code> with SSRF, redirect, size, timeout, and content-type guards, followed by <code>@mozilla/readability</code> and <code>jsdom</code>.</li>
+<li><strong>Local persistence:</strong> IndexedDB through <code>dexie</code> with a small typed schema.</li>
+<li><strong>Share database:</strong> Neon Postgres via <code>@neondatabase/serverless</code>.</li>
+<li><strong>Graph:</strong> React Flow (<code>@xyflow/react</code>) for draggable nodes and edges.</li>
+<li><strong>Model:</strong> Configurable through <code>GEMINI_MODEL</code>; verify a current fast Gemini model during setup rather than assuming availability.</li>
+</ul>
+<p>Documentation:</p>
+<ul>
+<li><a href="https://nextjs.org/docs/app">Next.js App Router</a></li>
+<li><a href="https://nextjs.org/docs/app/building-your-application/routing/route-handlers">Next.js Route Handlers</a></li>
+<li><a href="https://www.typescriptlang.org/docs/">TypeScript</a></li>
+<li><a href="https://zod.dev/">Zod</a></li>
+<li><a href="https://ai-sdk.dev/docs">Vercel AI SDK</a></li>
+<li><a href="https://ai-sdk.dev/docs/reference/ai-sdk-core/stream-text">AI SDK <code>streamText</code></a></li>
+<li><a href="https://ai-sdk.dev/docs/reference/ai-sdk-core/generate-object">AI SDK <code>generateObject</code></a></li>
+<li><a href="https://ai-sdk.dev/providers/ai-sdk-providers/google-generative-ai">Google provider</a></li>
+<li><a href="https://tailwindcss.com/docs">Tailwind CSS</a></li>
+<li><a href="https://motion.dev/docs">Motion</a></li>
+<li><a href="https://dexie.org/docs/">Dexie</a></li>
+<li><a href="https://mozilla.github.io/pdf.js/">pdfjs-dist</a></li>
+<li><a href="https://neon.tech/docs/serverless/serverless-driver">Neon serverless driver</a></li>
+<li><a href="https://vercel.com/docs/functions/fluid-compute">Vercel Fluid Compute</a></li>
+<li><a href="https://reactflow.dev/">React Flow</a></li>
+<li><a href="https://ai.google.dev/gemini-api/docs/api-key">Gemini API keys</a></li>
+<li><a href="https://ai.google.dev/gemini-api/docs/pricing">Gemini pricing</a></li>
+<li><a href="https://ai.google.dev/gemini-api/docs/rate-limits">Gemini rate limits</a></li>
+</ul>
+<h2 id="where-it-runs-and-how-someone-tries-it">Where It Runs and How Someone Tries It</h2>
+<p>The app runs locally during development and deploys to Vercel for public use. It works in two deployment contexts:</p>
+<p><strong>Local.</strong> <code>npm run dev</code> starts the Next.js development server on <code>http://localhost:3000</code>. PDF parsing, IndexedDB, and streaming all work on localhost. The share routes also work on localhost if <code>DATABASE_URL</code> is set, otherwise Share is disabled with a clear message.</p>
+<p><strong>Vercel Hobby.</strong> Deployed to Vercel with Fluid Compute enabled (Settings → Functions), which raises the default function duration to 300 seconds and supports streaming responses. The free tier is licensed for personal and non-commercial use. A hackathon submission qualifies.</p>
+<p><strong>Required environment variables:</strong></p>
+<pre><code class="language-dotenv">GEMINI_API_KEY=replace-with-a-new-key-from-google-ai-studio
+GEMINI_MODEL=replace-with-a-current-fast-gemini-model
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+DATABASE_URL=postgres://...neon.tech/clarity
+</code></pre>
+<p><code>GOOGLE_API_KEY</code> is accepted as a fallback for <code>GEMINI_API_KEY</code>. <code>DATABASE_URL</code> is optional in local development; when absent, the Share action is hidden and the <code>/api/share</code> and <code>/s/[id]</code> routes return a clear &quot;sharing is not configured&quot; response.</p>
+<p><strong>Planned commands:</strong></p>
+<pre><code class="language-text">npm install
+npm run dev
+</code></pre>
+<p><strong>Deployed commands:</strong> Vercel builds and deploys automatically on push to the connected branch.</p>
+<p><strong>Demo path:</strong></p>
+<ol>
+<li>Open the app.</li>
+<li>Drop a PDF paper onto the input area. Text extracts in the browser.</li>
+<li>Select <code>Developer (Non-ML)</code>.</li>
+<li>Click Decode. Observe skeletons, ordered streaming cards, and the concept map.</li>
+<li>Open the local library. Reopen the decode.</li>
+<li>Click Share. Copy the link. Open it in a private window.</li>
+</ol>
+<h2 id="look-and-feel">Look and Feel</h2>
+<p>Implements <code>prd.md &gt; Look and Feel</code>.</p>
+<p><strong>Palette.</strong> Warm near-black background (<code>#1A1815</code>), warm charcoal surfaces (<code>#232019</code>), subtle 1px borders (<code>#33302A</code>), soft off-white primary text (<code>#EDE8E0</code>), muted warm-grey secondary text (<code>#8A8375</code>), and one amber accent (<code>#E8A33D</code>). Amber is reserved for the logo mark, the active audience control, the Decode action, and the primary affordance in the command palette. It is not used for result borders, underlines, or result text. Error surfaces use a calm red-tinted treatment that is semantic, not brand.</p>
+<p><strong>Typography.</strong> A clean sans-serif for the UI. Result paragraphs use generous line-height and a constrained maximum width. The takeaway uses a larger, heavier treatment.</p>
+<p><strong>Spacing.</strong> A four-pixel base unit. Every gap, padding, and margin is a multiple of four. The layout uses a consistent vertical rhythm; no ad-hoc values.</p>
+<p><strong>Motion.</strong> This is the thirty-second hook and it is designed, not decorative:</p>
+<ul>
+<li>Cards enter with a short upward translate plus fade, staggered by 40 milliseconds.</li>
+<li>Skeletons breathe on a 1.5-second sine cycle, not a linear pulse.</li>
+<li>Streaming tokens append without reflow jitter; the card reserves height for its expected final size.</li>
+<li>Buttons respond to hover (subtle lift), press (scale down 0.98), focus (amber ring), and disabled (reduced opacity) as four distinct states.</li>
+<li>The command palette fades and scales in over 150 milliseconds with a spring easing.</li>
+<li>All motion respects <code>prefers-reduced-motion</code> and collapses to instant transitions.</li>
+</ul>
+<p><strong>The one distinctive visual decision.</strong> Every premium product has one thing a screenshot betrays as theirs. For Clarity it is the <strong>decode transition</strong>: the moment the user clicks Decode, the source textarea dims to a warm grey and the four result cards rise into place beneath a thin amber line that draws itself across the results panel. This is the product's signature moment, and every other design decision supports it rather than competes with it.</p>
+<p><strong>Surfaces to avoid.</strong> No gradients, no glow effects, no neon, no purple, no pure black, no pure white, and no additional accent colors.</p>
+<h2 id="components">Components</h2>
+<h3 id="page-shell">Page Shell</h3>
+<p><code>app/page.tsx</code> orchestrates the layout and composes the child components. It owns the top-level React state that must be shared across the input area and the results area: current source text, selected audience, decode status, and the current result object. Everything else lives in the child components.</p>
+<p>Files: <code>app/page.tsx</code>, <code>app/layout.tsx</code>, <code>app/globals.css</code>.</p>
+<p>Implements <code>prd.md &gt; Screens and Layout</code>.</p>
+<h3 id="source-input">Source Input</h3>
+<p><code>components/source-input.tsx</code> owns the textarea, the file dropzone, the URL input row, and the source-mode tabs. It performs client-side file parsing for <code>.txt</code> and <code>.pdf</code>. It calls <code>POST /api/fetch-url</code> for URL extraction. It never calls the model.</p>
+<p>Implements <code>prd.md &gt; Features and Behavior &gt; Text Input</code>, <code>prd.md &gt; Features and Behavior &gt; File Ingestion</code>, <code>prd.md &gt; Features and Behavior &gt; URL Ingestion</code>.</p>
+<h3 id="audience-and-action">Audience and Action</h3>
+<p><code>components/audience-action.tsx</code> owns the three audience buttons and the Decode action. It reads and writes the audience and decode status through props. It is the only component that triggers the decode flow.</p>
+<p>Implements <code>prd.md &gt; Features and Behavior &gt; Audience Selection</code>, <code>prd.md &gt; Features and Behavior &gt; Decode and Streaming Results</code>.</p>
+<h3 id="result-cards">Result Cards</h3>
+<p><code>components/result-cards.tsx</code> renders the four progressive cards. Each card supports five states: skeleton, streaming, complete, section-error, and retry. The Jargon Buster card renders term-translation pairs. Paragraph-level citations, when present, render as a subtle superscript link that scrolls the source input to the referenced paragraph.</p>
+<p>Implements <code>prd.md &gt; Features and Behavior &gt; Decode and Streaming Results</code>, <code>prd.md &gt; Features and Behavior &gt; Partial Recovery</code>, <code>prd.md &gt; Features and Behavior &gt; Citations</code>.</p>
+<h3 id="recovery-state">Recovery State</h3>
+<p><code>components/recovery-state.tsx</code> renders the section-level retry card and the global error state. It receives the failed section name and the retry callbacks from the page.</p>
+<p>Implements <code>prd.md &gt; Features and Behavior &gt; Partial Recovery</code>, <code>prd.md &gt; Features and Behavior &gt; Global Failure</code>.</p>
+<h3 id="stale-badge">Stale Badge</h3>
+<p><code>components/stale-badge.tsx</code> renders the <code>Results out of date</code> indicator. It is a purely presentational component driven by a boolean prop.</p>
+<p>Implements <code>prd.md &gt; Features and Behavior &gt; Stale Results</code>.</p>
+<h3 id="concept-map">Concept Map</h3>
+<p><code>components/concept-map.tsx</code> renders validated nodes and edges with React Flow. Nodes are draggable, the canvas supports pan and zoom, and relationship labels remain readable.</p>
+<p>Implements <code>prd.md &gt; Features and Behavior &gt; Concept Map</code>.</p>
+<h3 id="local-library">Local Library</h3>
+<p><code>components/library-drawer.tsx</code> renders the searchable list of past decodes from IndexedDB. It supports open, rename, and delete. It never calls the network.</p>
+<p>Implements <code>prd.md &gt; Features and Behavior &gt; Local Library</code>.</p>
+<h3 id="command-palette">Command Palette</h3>
+<p><code>components/command-palette.tsx</code> renders a Cmd+K (Ctrl+K on Windows and Linux) overlay. Actions include: focus source input, decode, switch audience, open library, share current result, and clear current result. It is keyboard-first and has no mouse-required interaction.</p>
+<p>Implements <code>prd.md &gt; Features and Behavior &gt; Command Palette</code>.</p>
+<h3 id="share-dialog">Share Dialog</h3>
+<p><code>components/share-dialog.tsx</code> renders the share action, the resulting link, a copy button, and a revoke link. It stores the delete token in the local library entry.</p>
+<p>Implements <code>prd.md &gt; Features and Behavior &gt; Share a Decode</code>.</p>
+<h3 id="nextjs-route-handlers">Next.js Route Handlers</h3>
+<ul>
+<li><code>app/api/decode/route.ts</code> validates and streams four sections plus a graph event.</li>
+<li><code>app/api/retry-section/route.ts</code> validates and streams one section.</li>
+<li><code>app/api/fetch-url/route.ts</code> safely fetches public HTML and returns readable text.</li>
+<li><code>app/api/share/route.ts</code> inserts a shared decode and returns an ID plus a delete token.</li>
+<li><code>app/s/[id]/route.ts</code> reads a shared decode and renders it read-only. It also handles revocation when the correct token is supplied as a query parameter.</li>
+</ul>
+<p>Implements the server side of the corresponding <code>prd.md &gt; Features and Behavior</code> sections.</p>
+<h3 id="zod-schemas">Zod Schemas</h3>
+<p><code>lib/validation.ts</code> validates the decode request, the retry request, the URL request, and the share request. Every schema rejects with a typed JSON error before any work begins.</p>
+<p>Implements <code>prd.md &gt; States and Boundaries</code>.</p>
+<h3 id="prompt-builder">Prompt Builder</h3>
+<p><code>lib/prompts.ts</code> builds section-specific system prompts from the audience contract and the source text. It also builds the graph extraction prompt. Every prompt enforces source grounding and forbids invented content.</p>
+<p>Implements <code>prd.md &gt; Features and Behavior &gt; Audience Selection</code>, <code>prd.md &gt; Features and Behavior &gt; Decode and Streaming Results</code>, <code>prd.md &gt; Features and Behavior &gt; Concept Map</code>.</p>
+<h3 id="ai-client">AI Client</h3>
+<p><code>lib/ai.ts</code> constructs the <code>@ai-sdk/google</code> provider from the server environment. It reads <code>GEMINI_API_KEY</code> and <code>GEMINI_MODEL</code> and throws a clear error when either is missing.</p>
+<p>Implements <code>prd.md &gt; Features and Behavior &gt; Decode and Streaming Results</code>.</p>
+<h3 id="local-store">Local Store</h3>
+<p><code>lib/local-store.ts</code> wraps Dexie and exposes typed functions: <code>saveDecode</code>, <code>listDecodes</code>, <code>getDecode</code>, <code>deleteDecode</code>, <code>searchDecodes</code>. It also exposes the localStorage session identity used for the share limit.</p>
+<p>Implements <code>prd.md &gt; Features and Behavior &gt; Local Library</code>, <code>prd.md &gt; Features and Behavior &gt; Share a Decode</code>.</p>
+<h3 id="share-store">Share Store</h3>
+<p><code>lib/share-store.ts</code> wraps the Neon serverless driver. It exposes <code>createShare</code>, <code>readShare</code>, <code>revokeShare</code>, and <code>countSharesForIdentity</code>. It is server-only.</p>
+<p>Implements <code>prd.md &gt; Features and Behavior &gt; Share a Decode</code>.</p>
+<h3 id="safe-url-fetcher">Safe URL Fetcher</h3>
+<p><code>lib/safe-url.ts</code> validates a URL against private-network ranges, follows only safe redirects, enforces size and timeout limits, and requires an HTML content type.</p>
+<p>Implements <code>prd.md &gt; Features and Behavior &gt; URL Ingestion</code>.</p>
+<h3 id="rate-budget">Rate Budget</h3>
+<p><code>lib/rate-budget.ts</code> reads and updates a per-browser decode counter in localStorage. Default budget is twenty decodes per hour. When exhausted, the Decode button disables and shows the reset time.</p>
+<p>Implements <code>prd.md &gt; States and Boundaries</code>.</p>
+<h3 id="design-tokens">Design Tokens</h3>
+<p><code>lib/tokens.ts</code> exports the spacing scale, motion durations, and easing curves used by components. This is the single source of truth for the visual system.</p>
+<p>Implements <code>prd.md &gt; Look and Feel</code>.</p>
+<h3 id="graph-schema">Graph Schema</h3>
+<p><code>lib/graph-schema.ts</code> validates the concept graph payload before React Flow receives it. Malformed or oversized payloads become a graph-specific error rather than breaking the result cards.</p>
+<p>Implements <code>prd.md &gt; Features and Behavior &gt; Concept Map</code>.</p>
+<h3 id="shared-types">Shared Types</h3>
+<p><code>lib/types.ts</code> holds <code>Audience</code>, <code>DecodeSection</code>, <code>SectionResult</code>, <code>Decode</code>, <code>ConceptGraph</code>, and <code>ShareMeta</code>. It is imported by both client and server code and has no runtime dependencies.</p>
+<p>Implements the type contracts of every component above.</p>
+<h2 id="api-contracts">API Contracts</h2>
+<h3 id="post-apidecode"><code>POST /api/decode</code></h3>
+<p>Request:</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;text&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Dense source text...&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;audience&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Developer (Non-ML)&quot;</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p>Response: <code>200 text/event-stream</code>.</p>
+<p>Application events:</p>
+<pre><code class="language-text">event: section-start
+data: {&quot;section&quot;:&quot;tldr&quot;}
+
+event: token
+data: {&quot;section&quot;:&quot;tldr&quot;,&quot;text&quot;:&quot;They built...&quot;}
+
+event: section-complete
+data: {&quot;section&quot;:&quot;tldr&quot;}
+
+event: section-error
+data: {&quot;section&quot;:&quot;jargon&quot;,&quot;message&quot;:&quot;This section couldn&#x27;t be generated. The connection may have dropped.&quot;}
+
+event: graph
+data: {&quot;nodes&quot;:[...],&quot;edges&quot;:[...]}
+
+event: global-error
+data: {&quot;message&quot;:&quot;The decoder is unavailable.&quot;}
+
+event: done
+data: {}
+</code></pre>
+<p>If validation fails before streaming, the route returns <code>400 application/json</code> with <code>{ &quot;error&quot;: &quot;...&quot; }</code>.</p>
+<h3 id="post-apiretry-section"><code>POST /api/retry-section</code></h3>
+<p>Request:</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;text&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Dense source text...&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;audience&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Developer (Non-ML)&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;section&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;jargon&quot;</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p>Response: <code>200 text/event-stream</code> containing <code>section-start</code>, <code>token</code>, <code>section-complete</code>, and <code>done</code> for only the requested section. If the retry itself fails, the route emits <code>section-error</code> for that section.</p>
+<h3 id="post-apifetch-url"><code>POST /api/fetch-url</code></h3>
+<p>Request:</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;url&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;https://example.com/public-article&quot;</span> <span class="hljs-punctuation">}</span>
+</code></pre>
+<p>Response:</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;text&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Readable page text...&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;url&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;https://example.com/public-article&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;title&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Article title&quot;</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p>The route rejects unsafe schemes, private destinations, authentication pages, non-HTML content, oversized responses, excessive redirects, and timeouts.</p>
+<h3 id="post-apishare"><code>POST /api/share</code></h3>
+<p>Request:</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;identity&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;browser-uuid-v4&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;decode&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
+    <span class="hljs-attr">&quot;text&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Source text...&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;audience&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Developer (Non-ML)&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;sections&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
+      <span class="hljs-attr">&quot;tldr&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;...&quot;</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;analogy&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;...&quot;</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;jargon&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;...&quot;</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;takeaway&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;...&quot;</span>
+    <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;graph&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;nodes&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;edges&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-punctuation">]</span> <span class="hljs-punctuation">}</span>
+  <span class="hljs-punctuation">}</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p>Response:</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;8f3a2c&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;deleteToken&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;d41f9b7e...&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;url&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;https://clarity.app/s/8f3a2c&quot;</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p>The route first counts existing shares for the supplied <code>identity</code>. If the count is at the limit (ten), the route returns <code>429 application/json</code> with <code>{ &quot;error&quot;: &quot;Share limit reached for this browser.&quot; }</code>.</p>
+<h3 id="get-sid"><code>GET /s/[id]</code></h3>
+<p>Response: <code>200 text/html</code> rendering the shared decode read-only, including the source text and the graph. Returns <code>404</code> if the ID does not exist or has been revoked.</p>
+<h3 id="post-apishareidrevoke"><code>POST /api/share/[id]/revoke</code></h3>
+<p>Request:</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;deleteToken&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;d41f9b7e...&quot;</span> <span class="hljs-punctuation">}</span>
+</code></pre>
+<p>Response: <code>204 No Content</code> on success, <code>403</code> on a wrong token, <code>404</code> on an unknown ID.</p>
+<h2 id="data-model">Data Model</h2>
+<h3 id="local-persistence-browser-indexeddb-via-dexie">Local persistence (browser, IndexedDB via Dexie)</h3>
+<pre><code class="language-text">LocalDecode {
+  id: string                    // uuid v4, generated on save
+  createdAt: number             // epoch milliseconds
+  title: string                 // first 60 chars of source, editable
+  text: string
+  audience: &quot;Student&quot; | &quot;Executive&quot; | &quot;Developer (Non-ML)&quot;
+  sections: {
+    tldr: string
+    analogy: string
+    jargon: string
+    takeaway: string
+  }
+  graph: ConceptGraph | null
+  share: {
+    id: string
+    url: string
+    deleteToken: string
+  } | null
+}
+
+SessionIdentity {
+  uuid: string                  // stable per browser, stored in localStorage
+  decodeBudget: {
+    windowStart: number         // epoch milliseconds of current hour window
+    count: number
+  }
+}
+</code></pre>
+<p>IndexedDB indexes: <code>createdAt</code> for the library list, and a full-text search on <code>text</code> and <code>title</code> implemented in application code because Dexie does not ship a full-text index by default.</p>
+<h3 id="cloud-persistence-neon-postgres">Cloud persistence (Neon Postgres)</h3>
+<pre><code class="language-text">shared_decodes (
+  id            text primary key,
+  identity      text not null,
+  created_at    timestamptz not null default now(),
+  payload       jsonb not null,
+  delete_token  text not null,
+  views         integer not null default 0
+)
+</code></pre>
+<p><code>id</code> is a short random string (eight characters, base32). <code>payload</code> holds the entire decode object as JSON, which keeps the schema minimal and lets the shape evolve without a migration. <code>identity</code> exists only to enforce the ten-share limit; it is never shown or exported. A row is deleted when the user supplies the correct <code>delete_token</code> to the revoke route.</p>
+<h3 id="page-state-react-memory">Page state (React memory)</h3>
+<pre><code class="language-text">PageState {
+  text: string
+  audience: &quot;Student&quot; | &quot;Executive&quot; | &quot;Developer (Non-ML)&quot;
+  results: {
+    tldr: string
+    analogy: string
+    jargon: string
+    takeaway: string
+  }
+  cardStates: &quot;empty&quot; | &quot;skeleton&quot; | &quot;streaming&quot; | &quot;complete&quot; | &quot;error&quot;
+  isDecoding: boolean
+  isStale: boolean
+  globalError: string | null
+}
+</code></pre>
+<p><code>text</code> and <code>audience</code> are updated by input controls and are never cleared by errors. <code>results</code> updates as token events arrive; completed sections are not replaced by later failures. Refreshing the page discards in-memory state; the local library is what survives.</p>
+<h2 id="file-structure">File Structure</h2>
+<pre><code class="language-text">Clarity/
+├── app/
+│   ├── api/
+│   │   ├── decode/route.ts
+│   │   ├── retry-section/route.ts
+│   │   ├── fetch-url/route.ts
+│   │   └── share/
+│   │       ├── route.ts
+│   │       └── [id]/revoke/route.ts
+│   ├── s/
+│   │   └── [id]/route.ts
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx
+├── components/
+│   ├── audience-action.tsx
+│   ├── command-palette.tsx
+│   ├── concept-map.tsx
+│   ├── library-drawer.tsx
+│   ├── recovery-state.tsx
+│   ├── result-cards.tsx
+│   ├── share-dialog.tsx
+│   ├── source-input.tsx
+│   └── stale-badge.tsx
+├── lib/
+│   ├── ai.ts
+│   ├── graph-schema.ts
+│   ├── local-store.ts
+│   ├── prompts.ts
+│   ├── rate-budget.ts
+│   ├── safe-url.ts
+│   ├── share-store.ts
+│   ├── tokens.ts
+│   ├── types.ts
+│   └── validation.ts
+├── devpost/
+├── public/
+├── AGENTS.md
+├── package.json
+├── tsconfig.json
+├── next.config.ts
+├── eslint.config.mjs
+├── postcss.config.mjs
+├── .env
+├── .env.example
+├── .gitignore
+└── README.md
+</code></pre>
+<h2 id="external-services-and-dependencies">External Services and Dependencies</h2>
+<h3 id="google-ai-studio--gemini-api">Google AI Studio / Gemini API</h3>
+<ul>
+<li>Purpose: generate the audience-aware four-section explanation and the concept graph.</li>
+<li>Endpoint: <code>POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions</code>, wrapped by <code>@ai-sdk/google</code>.</li>
+<li>Auth: <code>GEMINI_API_KEY</code> or <code>GOOGLE_API_KEY</code> on the server. Never client-side.</li>
+<li>Input: model, <code>stream: true</code>, temperature, system and user messages.</li>
+<li>Output: OpenAI-compatible SSE chunks containing incremental assistant delta text.</li>
+<li>Cost: free tier subject to current quotas. Verify the selected model and account at setup; do not assume unlimited free usage.</li>
+<li>Privacy: source text is sent to the provider for generation. Do not add confidential documents to the demo without considering provider data policies.</li>
+</ul>
+<h3 id="vercel-hobby">Vercel Hobby</h3>
+<ul>
+<li>Purpose: host the Next.js application and the route handlers.</li>
+<li>Constraints: 4.5 MB request body limit on functions, 120-second proxied request timeout, 300-second function duration with Fluid Compute, personal and non-commercial use only.</li>
+<li>Free tier: 100 GB transfer, 1M function invocations per month, 100 deployments per day.</li>
+<li>Documentation: <a href="https://vercel.com/docs/functions/fluid-compute">Vercel Fluid Compute</a>.</li>
+</ul>
+<h3 id="neon-postgres">Neon Postgres</h3>
+<ul>
+<li>Purpose: store shared decodes behind short links.</li>
+<li>Free tier: 0.5 GB storage, 100 compute-unit hours per month, 100 projects, scale-to-zero after five minutes idle, 5 GB public network transfer.</li>
+<li>Driver: <code>@neondatabase/serverless</code> for HTTP-mode queries.</li>
+<li>Documentation: <a href="https://neon.tech/docs/serverless/serverless-driver">Neon serverless driver</a>.</li>
+<li>Cost cap: writes fail when the storage limit is exceeded; no automatic charges.</li>
+</ul>
+<h3 id="no-other-services">No Other Services</h3>
+<p>No authentication provider, no analytics, no error tracking service, no payment processor, and no CDN beyond Vercel's built-in edge network.</p>
+<h2 id="important-failure-modes">Important Failure Modes</h2>
+<ul>
+<li><strong>Empty or invalid request</strong> → Return a clear validation response; the frontend keeps input and shows the empty-text message.</li>
+<li><strong>Slow upstream model</strong> → Show disabled <code>Decoding...</code> plus four skeleton cards; keep the input editable.</li>
+<li><strong>Provider stream breaks mid-section</strong> → Preserve completed cards and show an inline section error with section retry.</li>
+<li><strong>Provider unavailable before output</strong> → Show a global retry state; preserve input and audience.</li>
+<li><strong>Malformed model markers</strong> → Server treats the affected section as failed rather than displaying model control text; expose section retry.</li>
+<li><strong>Rate limit or quota response</strong> → Convert to a calm retryable error and do not expose raw provider payloads.</li>
+<li><strong>Per-session budget exhausted</strong> → Disable Decode, show reset time, and never call the model.</li>
+<li><strong>PDF too large for the browser</strong> → Show a clear message explaining that the file exceeds the browser's safe parse limit and suggest pasting the relevant section as text.</li>
+<li><strong>PDF has no extractable text</strong> → Explain that the PDF contains no readable text and that scanned PDFs are not supported.</li>
+<li><strong>Malformed graph JSON</strong> → Keep the four cards and show a retryable Concept Map error.</li>
+<li><strong>Share limit reached</strong> → Return <code>429</code> with a clear message; the client shows it in the share dialog.</li>
+<li><strong>Neon unavailable</strong> → Share and shared views fail with a clear message; local decode and local library continue to work.</li>
+<li><strong>Database not configured in local development</strong> → Share is hidden; the share routes return a <code>503</code> with a &quot;sharing is not configured&quot; message.</li>
+</ul>
+<h2 id="what-was-simplified-and-why">What Was Simplified and Why</h2>
+<ul>
+<li><strong>One Next.js app</strong> instead of separate frontend and API deployments. Enough for the demo and keeps the Gemini key server-side.</li>
+<li><strong>No accounts</strong> instead of user authentication. The local library and the browser-identity share limit give the account-like behavior a user actually wants without the account infrastructure.</li>
+<li><strong>Local-first persistence</strong> instead of server-side user storage. The user's work stays on their machine unless they explicitly share it.</li>
+<li><strong>Client-side PDF parsing</strong> instead of server-side parsing. Removes the serverless request-size and memory ceilings, works offline, and keeps file content on the user's machine.</li>
+<li><strong>Paragraph-level citations</strong> instead of sentence-level citations. Meaningful trust without a hard prompt-engineering and layout problem in this phase.</li>
+<li><strong>AI SDK</strong> instead of hand-written provider stream parsing. It handles the streaming protocol and leaves the application focused on rendering and recovery.</li>
+<li><strong>Fixed audience strings and tagged sections</strong> instead of arbitrary prompts. Makes the demo behavior testable and keeps streaming parsing understandable.</li>
+<li><strong>Single shared decode table</strong> instead of a full share schema. One table with a JSON payload is the smallest shape that supports a share link and can evolve without migrations.</li>
+<li><strong>Ten-share limit per browser identity</strong> instead of per-account or per-IP limits. This is abuse prevention for a free, open-source, accountless tool, not security.</li>
+</ul>
+<h2 id="decisions-and-open-issues">Decisions and Open Issues</h2>
+<h3 id="decisions">Decisions</h3>
+<ul>
+<li><strong>Direction:</strong> Path A. Depth for one reader class first (researchers, developers, analysts, students who hit walls of dense text), rather than breadth across a platform. The three locked audiences are the tool's contract.</li>
+<li><strong>Deployment shape:</strong> Local-first with cloud-on-demand share. The default path never touches a server beyond the Gemini call.</li>
+<li><strong>Provider:</strong> Google Gemini API through Google AI Studio. Configured through <code>GEMINI_MODEL</code>.</li>
+<li><strong>Frontend:</strong> Next.js App Router with TypeScript and Tailwind, chosen for a modern type-safe full-stack foundation.</li>
+<li><strong>API:</strong> Next.js route handlers at the documented paths. tRPC is not used.</li>
+<li><strong>Validation:</strong> Zod schemas at every route boundary.</li>
+<li><strong>Streaming:</strong> Vercel AI SDK <code>streamText</code> with <code>@ai-sdk/google</code>.</li>
+<li><strong>Local storage:</strong> IndexedDB via Dexie, holding decodes and the browser session identity.</li>
+<li><strong>Cloud storage:</strong> Neon Postgres, holding only shared decodes.</li>
+<li><strong>File parsing:</strong> Client-side, via <code>FileReader</code> and <code>pdfjs-dist</code> browser build. No server upload route exists.</li>
+<li><strong>Share:</strong> Ten live shares per browser identity, tracked in <code>localStorage</code>, each revocable with a per-share delete token.</li>
+<li><strong>Motion:</strong> <code>motion</code> library, with a designed motion language rather than ad-hoc transitions.</li>
+<li><strong>Secrets:</strong> Environment variables only. <code>.env</code> is ignored; <code>.env.example</code> contains names and safe placeholders.</li>
+</ul>
+<h3 id="one-useful-unknown">One useful unknown</h3>
+<p>The interaction between Gemini's free-tier rate limits and a publicly deployed app is the largest operational risk. The per-browser decode budget (twenty per hour) is a mitigation, but not a guarantee, because the serverless function sees only the request, not the browser identity at the Gemini call. Verify the current Gemini free-tier request-per-minute and request-per-day limits during setup, and add a server-side rate limit keyed by IP if the browser budget is insufficient in practice.</p>
+<h3 id="open-issues">Open issues</h3>
+<ul>
+<li>Select and verify the current Gemini model name during setup; keep it in <code>GEMINI_MODEL</code> so the provider model can change without a code rewrite.</li>
+<li>Confirm the current Gemini free-tier quota and any geographic or account restrictions before demo recording.</li>
+<li>Choose the exact maximum source text length during implementation after checking the selected model's context and rate limits.</li>
+<li>Decide whether citations should be paragraph-level (this spec) or sentence-level (stretch) once the first version of the citation UI is running and can be evaluated against real decode output.</li>
+<li>Decide whether a server-side per-IP rate limit is needed once the app is deployed and real traffic patterns are observable. The browser budget is the first line; the server limit is a second line only if needed.</li>
+</ul>
+
+            
+            
+        </body>
+        </html>

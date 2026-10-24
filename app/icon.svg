@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <style>
+    .fg { fill: #09090b; }
+    .fs { stroke: #09090b; }
+    @media (prefers-color-scheme: dark) {
+      .fg { fill: #f8fafc; }
+      .fs { stroke: #f8fafc; }
+    }
+  </style>
+  <defs>
+    <mask id="eclipse">
+      <rect width="32" height="32" fill="#ffffff" />
+      <circle cx="19.5" cy="12.5" r="4.4" fill="#000000" />
+    </mask>
+  </defs>
+  <circle cx="16" cy="16" r="14" class="fs" fill="none" stroke-width="1.25" opacity="0.32" />
+  <circle cx="16" cy="16" r="14" class="fs" fill="none" stroke-width="2" stroke-linecap="round" pathLength="100" stroke-dasharray="26 74" transform="rotate(120 16 16)" opacity="0.9" />
+  <circle cx="16" cy="16" r="5" class="fg" mask="url(#eclipse)" />
+  <circle cx="16" cy="2" r="1.7" class="fg" />
+</svg>

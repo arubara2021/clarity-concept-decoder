@@ -1,80 +1,98 @@
 ---
 doc: scope
-status: approved
+status: draft
 ---
 # Clarity
 
-A concept decoder that translates dense text into an accurate mental model for a chosen audience.
+A concept decoder that translates dense text into an accurate mental model for a chosen audience, keeps the reader's work private on their own machine, and lets them share a single decode by link when they choose to.
 
 ## The Unique Kernel
+
 Clarity does more than shorten or rephrase dense content. It bridges the gap between recognizing the words and understanding the concept by rebuilding the explanation for the reader's chosen background while preserving the important nuance.
 
-Its signature output is a structured translation: a one-sentence TL;DR, a concrete analogy, jargon translated into plain English, and the single most important takeaway.
+Its signature output is a structured translation: a one-sentence TL;DR, a concrete analogy, jargon translated into plain English, and the single most important takeaway, followed by a concept map that shows how the ideas relate. Each claim can be traced back to a paragraph in the source.
+
+The kernel has not changed since the original scope. What has changed is that the tool now keeps its work, survives its failures, and feels like a product rather than a form.
 
 ## Who It's For
-Students, research scholars, and developers who encounter dense academic, legal, scientific, or technical writing and need to understand the underlying concept quickly. Today they reread paragraphs repeatedly, search individual terms across many tabs, or prompt a chatbot several times and still receive generic or overly simplified explanations.
+
+Anyone who repeatedly hits a wall of dense text and needs to get through it without losing the nuance. Researchers reading papers outside their subfield. Developers reading specifications and RFCs. Analysts reading filings and long reports. Students reading outside their discipline. The three audience labels (`Student`, `Executive`, `Developer (Non-ML)`) serve the vast majority of these readers.
+
+Today they reread paragraphs repeatedly, open many tabs to search terms, or prompt a chatbot several times and still receive generic or overly simplified explanations. Nothing in that loop gives them a working mental model, and nothing in it remembers what they already figured out.
 
 ## The Core Loop
-The user opens Clarity, pastes dense text, drops a PDF/TXT file, or pastes a public web URL into the input area. Clarity extracts file or URL content server-side, the user reviews or edits the resulting text, chooses the audience they want the explanation adapted for, and receives a structured breakdown. Once the four explanations are complete, Clarity reveals a Concept Map showing how the important ideas in the source connect. They return whenever a difficult passage, document, or web page creates the gap between knowing the words and understanding what the passage means or why it matters.
+
+The user opens Clarity, pastes dense text, drops a PDF or TXT file, or pastes a public web URL. Files are parsed locally in the browser; URLs are fetched safely by the server. The user reviews and edits the extracted text, chooses the audience, and receives a structured breakdown that streams into four cards, followed by a concept map. Every completed decode is saved automatically into the reader's local library, where it can be reopened, searched, renamed, or deleted. The user returns whenever a difficult passage, document, or web page creates the gap between knowing the words and understanding what the passage means or why it matters.
 
 ## Inspiration & Identity
+
 Clarity should feel precise, calm, accessible, and intellectually respectful. It should simplify the path to understanding without making the reader feel talked down to. The product identity is a translator of concepts, not a generic chat interface.
 
+The visual identity is warm near-black, warm charcoal surfaces, soft off-white text, and one scarce amber accent. The palette is calm and premium, like a thoughtful reading app rather than a developer tool.
+
+The motion language is designed as a system rather than added per component. Cards rise into place with a short stagger. Skeletons breathe rather than pulse. Streaming text does not shift the layout beneath it. Every button has four distinct states — hover, press, focus, and disabled. All motion respects `prefers-reduced-motion`.
+
+The signature moment is the decode transition. When the user clicks Decode, the source textarea dims to a warm grey, a thin amber line draws itself across the results panel, and the four cards rise into place beneath it. This is the moment a screenshot betrays as Clarity's, and every other visual decision supports it rather than competes with it.
+
 ## Why This Matters to the Learner
-The learner wants to own the project deeply and understand its architecture, data flow, and processing pipeline rather than only produce working code. This formal scope expansion turns the original proof of concept into a production-oriented product surface while keeping the core journey focused.
+
+The learner wants to own the project deeply and understand its architecture, data flow, and processing pipeline rather than only produce working code. The upgrade from a demo into a local-first tool with a designed identity, a local library, a motion language, and an optional cloud share is exactly the work that produces that understanding, because every part of it is a real engineering decision rather than a feature checklist.
 
 ## What "Working" Looks Like
-In a one-minute demo, the user pastes this machine-learning research paragraph:
 
-> "We propose a novel architecture that leverages orthogonal latent representations to disentangle independent factors of variation. By imposing a factorized prior over the latent space, our model achieves superior compositional generalization on out-of-distribution tasks, as measured by the disentanglement metric. Ablation studies confirm that the orthogonality constraint is the critical inductive bias."
+In a one-minute demo, the user drops a machine-learning research PDF onto the input area. The browser parses it. The extracted text appears in the editable source input. The user selects `Developer (Non-ML)` and clicks Decode. The source textarea dims, the amber line draws across the results panel, and the four cards rise into place as skeletons. Text streams into TL;DR, The Analogy, Jargon Buster, and The One Thing to Remember in order. Each card carries small superscript markers that scroll the source to the paragraph a claim was drawn from. Below the cards, a Concept Map renders the key concepts and their relationships. When the stream finishes, the decode is saved into the library. The user opens the library, searches for a term, and reopens the decode. Then they share it, receive a short link, and open the link in a private window to see it read-only with the source behind a collapsed panel.
 
-They select `Developer (Non-ML)` and trigger the decode. The screen changes from the dense original to four distinct blocks:
-
-1. **TL;DR:** "They built an AI that separates different concepts in its memory so it can handle new situations better."
-2. **Analogy:** A closet analogy where concepts are organized on separate shelves instead of dumped into one pile, making new combinations easier to handle.
-3. **Jargon Buster:** Terms such as orthogonal latent representations, disentangle independent factors of variation, compositional generalization, and inductive bias translated into plain English.
-4. **One Thing to Remember:** "The key insight is that how you organize an AI's memory matters more than how much data you feed it."
-
-5. **Concept Map:** An interactive node-link graph shows the key concepts and relationships extracted from the source, such as `Orthogonal Latent Representations` connecting to `Disentanglement`.
-
-The compelling moment is the transition from "I recognize these words" to "I understand this concept, can explain it to someone else, and can see how its parts relate."
+The compelling moment is the same as it was in the original scope: the transition from "I recognize these words" to "I understand this concept, can explain it to someone else, and can see how its parts relate." What has changed is that the moment now survives a refresh, can be shared with a link, and feels like something worth returning to.
 
 ## The Product Boundary
 
-This formal scope change expands the original proof of concept with production-oriented file extraction and concept relationships, while still excluding accounts, collaboration, OCR, and document management.
+This scope change turns the original proof of concept into a local-first product with a designed identity, an offline library, and an optional cloud share. It still excludes accounts, collaboration, document management, and OCR.
 
 **In:**
-- One focused web experience for pasting dense text.
-- A small set of audience presets, including the demonstrated `Developer (Non-ML)` audience.
-- One decode action producing the four structured output blocks.
-- Drag-and-drop or file-picker ingestion for `.pdf` and `.txt` files, with extracted text review before decoding.
-- Public HTML URL ingestion, with fetched readable text review before decoding.
-- A Concept Map below the four explanation cards, with interactive nodes and edges derived from the original text.
-- Structured graph data returned by the backend for rendering.
-- The end-to-end path from input text through audience-aware explanation to visible results.
-- A compelling demo using the supplied research paper paragraph and a representative PDF/TXT upload.
+
+- One focused web experience for pasting dense text, dropping a file, or pasting a public URL.
+- A small set of audience presets: `Student`, `Executive`, and `Developer (Non-ML)`.
+- One decode action producing the four structured output blocks, a concept map, and paragraph-level citations.
+- Client-side parsing for `.pdf` and `.txt` files, keeping file content on the user's machine.
+- Public HTML URL ingestion with safe server-side fetching and readable-text extraction.
+- A local library backed by IndexedDB, with search, reopen, rename, and delete. Nothing leaves the browser.
+- A command palette reachable by `Cmd+K` and `Ctrl+K`, with every action available from the keyboard.
+- A designed motion language and one signature decode transition.
+- Share-on-demand: one decode becomes one short link, up to ten live shares per browser, each revocable.
+- A read-only shared view that shows the decode alongside the source behind a collapsed panel.
+- A per-browser rate budget of twenty decodes per rolling hour, protecting the free Gemini tier.
+- The end-to-end path from input text through audience-aware explanation to visible, revisit-able, shareable results.
+- A compelling demo using a supplied research paper PDF or paragraph.
 
 **Out of scope for this release:**
-- User accounts, saved history, document libraries, and collaboration.
-- Browser extensions or integrations with research tools.
+
+- User accounts, cross-device sync, saved cloud history, and collaboration.
+- Custom audience fields and audience-specific presets beyond the three locked labels.
+- Sentence-level citations, formal factuality evaluation, and confidence scoring.
+- OCR for scanned or image-only PDFs, citations to external sources, and reference resolution.
+- Export to Markdown, PDF, or any format other than a share link.
+- Browser extensions, research-tool integrations, and one-click capture from an external page.
 - Open-ended chat or repeated prompting as the primary interaction.
-- Accounts, saved libraries, collaboration, and document history.
-- OCR for scanned/image-only PDFs, citations, and formal factuality evaluation.
+- Server-side file upload, server-side PDF parsing, and any pipeline that sends the user's file off their machine.
 
 ## Later
 
-- More domain- and audience-specific presets, including the initially imagined 10-year-old, Busy Executive, and Non-technical Founder options.
-- Custom audience instructions and interactive follow-up questions.
-- Long-document and file support with source references.
-- Batch document ingestion and file history.
-- Authenticated, paywalled, JavaScript-only, or private URL ingestion.
-- Richer graph filtering, node details, zoom controls, and export.
-- Saved explanations, sharing, and integrations.
-- Evaluation tools for factual accuracy, nuance preservation, and explanation quality.
+- Custom audience fields and additional audience presets.
+- Sentence-level citations and structured confidence indicators.
+- Side-by-side audience comparison for the same source.
+- Export to Markdown, PDF, and a portable library file.
+- PWA install target and offline-first caching of the app itself.
+- A browser extension for one-click capture of selected text.
+- Optional cloud sync of the local library, layered on top of the existing local-first model without replacing it.
+- Evaluation tooling for factual accuracy, nuance preservation, and audience fit.
+- Authenticated, paywalled, JavaScript-only, or private URL ingestion, which requires credentials, browser automation, or a larger security surface.
 
 ## Explicitly Cut
 
-- Generic chatbot conversation: it would recreate the prompting loop Clarity is meant to improve.
-- Feature-heavy document management: it does not prove the concept-translation kernel.
-- OCR and scanned-PDF support: extracting text from digital PDFs is enough to prove the ingestion path.
-- Full knowledge-management workflows: the first graph is an explanation surface, not a document database.
+- **Generic chatbot conversation.** It would recreate the prompting loop Clarity is meant to improve, and it would blur the product's identity into "another AI chat."
+- **Accounts and authentication.** The local library gives the account-like behavior a user actually wants without the infrastructure, the privacy surface, or the support burden.
+- **Server-side file processing.** Vercel Functions cap request bodies at 4.5 MB and memory at a few hundred MB. Parsing files in the browser removes both ceilings, works offline, and keeps file content private. It also matches the local-first character of the rest of the app.
+- **Cloud sync of the library.** Deferred until the local library proves people return to it. Sync without that evidence is infrastructure built on a guess.
+- **OCR and scanned-PDF support.** Extracting text from digital PDFs proves the ingestion path. OCR adds a substantial dependency and a large surface of edge cases.
+- **Document management workflows.** The library is a place to revisit a decode, not a document database. Batch uploads, folders, tagging, and document history are out.
+- **Collaborative decode.** Sharing a read-only link is in scope. Editing someone else's decode, commenting on it, or building a shared workspace are not.
