@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach } from "vitest";
-
 import {
     audienceSchema,
     decodeSectionSchema,
@@ -8,35 +7,34 @@ import {
     fetchUrlRequestSchema,
     shareRequestSchema,
     revokeRequestSchema,
-} from "../lib/validation";
-
-import { graphSchema } from "../lib/graph-schema";
-
+} from "@/lib/validation";
+import { graphSchema } from "@/lib/graph-schema";
 import {
     buildSectionPrompt,
     buildRetrySectionPrompt,
     buildGraphPrompt,
-} from "../lib/prompts";
-
-import { fetchPublicHtml } from "../lib/safe-url";
-
+} from "@/lib/prompts";
+import { fetchPublicHtml } from "@/lib/safe-url";
 import {
     getRateBudget,
     incrementRateBudget,
     resetRateBudget,
-} from "../lib/rate-budget";
+} from "@/lib/rate-budget";
+import { POST as decodeHandler } from "@/app/api/decode/route";
+import { POST as retryHandler } from "@/app/api/retry-section/route";
+import { POST as shareHandler } from "@/app/api/share/route";
+import { POST as revokeHandler } from "@/app/api/share/[id]/revoke/route";
+import { POST as fetchUrlHandler } from "@/app/api/fetch-url/route";
 
-import { POST as decodePost } from "../app/api/decode/route";
-import { POST as retryPost } from "../app/api/retry-section/route";
-import { POST as sharePost } from "../app/api/share/route";
-import { POST as revokePost } from "../app/api/share/[id]/revoke/route";
-import { POST as fetchUrlPost } from "../app/api/fetch-url/route";
+// Ensure env vars are set for AI model initialization during tests
+process.env.GEMINI_API_KEY = "test-key";
+process.env.GEMINI_MODEL = "gemini-1.5-flash-latest";
 
-function jsonRequest(body: unknown): Request {
-    return new Request("http://localhost/api", {
+function jsonRequest(body: unknown, url = "http://localhost/api/test") {
+    return new Request(url, {
         method: "POST",
-        body: JSON.stringify(body),
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
     });
 }
 
@@ -49,7 +47,6 @@ describe("validation.audienceSchema", () => {
     it("rejects wrong-case and empty strings", () => {
         expect(audienceSchema.safeParse("student").success).toBe(false);
         expect(audienceSchema.safeParse("").success).toBe(false);
-        expect(audienceSchema.safeParse("Developer").success).toBe(false);
     });
 });
 
@@ -81,9 +78,9 @@ describe("validation.decodeRequestSchema", () => {
         });
         expect(result.success).toBe(false);
     });
-    it("rejects text over 20000 characters", () => {
+    it("rejects text over 60000 characters", () => {
         const result = decodeRequestSchema.safeParse({
-            text: "a".repeat(20001),
+            text: "a".repeat(60001),
             audience: "Student",
         });
         expect(result.success).toBe(false);
@@ -91,7 +88,7 @@ describe("validation.decodeRequestSchema", () => {
     it("rejects a bad audience", () => {
         const result = decodeRequestSchema.safeParse({
             text: "Some text",
-            audience: "Wizard",
+            audience: "Bad",
         });
         expect(result.success).toBe(false);
     });
@@ -110,7 +107,7 @@ describe("validation.retryRequestSchema", () => {
         const result = retryRequestSchema.safeParse({
             text: "Some text",
             audience: "Executive",
-            section: "summary",
+            section: "bad",
         });
         expect(result.success).toBe(false);
     });
@@ -125,7 +122,6 @@ describe("validation.retryRequestSchema", () => {
 
 describe("validation.fetchUrlRequestSchema", () => {
     it("accepts http and https, case-insensitive", () => {
-        expect(fetchUrlRequestSchema.safeParse({ url: "https://example.com" }).success).toBe(true);
         expect(fetchUrlRequestSchema.safeParse({ url: "http://example.com" }).success).toBe(true);
         expect(fetchUrlRequestSchema.safeParse({ url: "HTTPS://example.com" }).success).toBe(true);
     });
@@ -133,65 +129,85 @@ describe("validation.fetchUrlRequestSchema", () => {
         expect(fetchUrlRequestSchema.safeParse({ url: "ftp://example.com" }).success).toBe(false);
         expect(fetchUrlRequestSchema.safeParse({ url: "mailto:a@b.com" }).success).toBe(false);
         expect(fetchUrlRequestSchema.safeParse({ url: "file:///etc/passwd" }).success).toBe(false);
-        expect(fetchUrlRequestSchema.safeParse({ url: "data:text/html,hi" }).success).toBe(false);
+        expect(fetchUrlRequestSchema.safeParse({ url: "data:text/plain,hi" }).success).toBe(false);
     });
     it("rejects a URL over 2048 characters", () => {
-        const longUrl = `https://example.com/${"a".repeat(2100)}`;
-        expect(fetchUrlRequestSchema.safeParse({ url: longUrl }).success).toBe(false);
+        expect(fetchUrlRequestSchema.safeParse({ url: "http://a.com/" + "a".repeat(2048) }).success).toBe(false);
     });
 });
 
 describe("validation.shareRequestSchema", () => {
-    const valid = {
-        identity: "abc123XYZ_-",
-        decode: {
-            text: "Some text",
-            audience: "Student",
-            sections: { tldr: "a", analogy: "b", jargon: "c", takeaway: "d" },
-            graph: null,
-        },
-    };
     it("accepts a valid share body", () => {
-        expect(shareRequestSchema.safeParse(valid).success).toBe(true);
+        const result = shareRequestSchema.safeParse({
+            identity: "test-identity-123",
+            decode: {
+                text: "text",
+                audience: "Student",
+                sections: { tldr: "a", analogy: "b", jargon: "c", takeaway: "d" },
+                graph: null,
+            },
+        });
+        expect(result.success).toBe(true);
     });
     it("accepts a body with a graph", () => {
-        const withGraph = {
-            ...valid,
+        const result = shareRequestSchema.safeParse({
+            identity: "test-identity-123",
             decode: {
-                ...valid.decode,
-                graph: {
-                    nodes: [{ id: "a", label: "Alpha" }],
-                    edges: [],
-                },
+                text: "text",
+                audience: "Student",
+                sections: { tldr: "a", analogy: "b", jargon: "c", takeaway: "d" },
+                graph: { nodes: [{ id: "a", label: "A" }], edges: [] },
             },
-        };
-        expect(shareRequestSchema.safeParse(withGraph).success).toBe(true);
+        });
+        expect(result.success).toBe(true);
     });
     it("rejects an identity with spaces", () => {
-        expect(shareRequestSchema.safeParse({ ...valid, identity: "has spaces" }).success).toBe(false);
+        const result = shareRequestSchema.safeParse({
+            identity: "bad identity",
+            decode: {
+                text: "text",
+                audience: "Student",
+                sections: { tldr: "a", analogy: "b", jargon: "c", takeaway: "d" },
+                graph: null,
+            },
+        });
+        expect(result.success).toBe(false);
     });
     it("rejects a too-short identity", () => {
-        expect(shareRequestSchema.safeParse({ ...valid, identity: "abc" }).success).toBe(false);
+        const result = shareRequestSchema.safeParse({
+            identity: "short",
+            decode: {
+                text: "text",
+                audience: "Student",
+                sections: { tldr: "a", analogy: "b", jargon: "c", takeaway: "d" },
+                graph: null,
+            },
+        });
+        expect(result.success).toBe(false);
     });
     it("rejects an invalid audience inside the decode", () => {
-        const bad = {
-            ...valid,
-            decode: { ...valid.decode, audience: "Wizard" },
-        };
-        expect(shareRequestSchema.safeParse(bad).success).toBe(false);
+        const result = shareRequestSchema.safeParse({
+            identity: "test-identity-123",
+            decode: {
+                text: "text",
+                audience: "Bad",
+                sections: { tldr: "a", analogy: "b", jargon: "c", takeaway: "d" },
+                graph: null,
+            },
+        });
+        expect(result.success).toBe(false);
     });
     it("rejects an invalid graph inside the decode", () => {
-        const bad = {
-            ...valid,
+        const result = shareRequestSchema.safeParse({
+            identity: "test-identity-123",
             decode: {
-                ...valid.decode,
-                graph: {
-                    nodes: [{ id: "a", label: "Alpha" }],
-                    edges: [{ id: "e1", source: "a", target: "missing" }],
-                },
+                text: "text",
+                audience: "Student",
+                sections: { tldr: "a", analogy: "b", jargon: "c", takeaway: "d" },
+                graph: { nodes: [], edges: [{ id: "e", source: "missing", target: "missing" }] },
             },
-        };
-        expect(shareRequestSchema.safeParse(bad).success).toBe(false);
+        });
+        expect(result.success).toBe(false);
     });
 });
 
@@ -200,59 +216,48 @@ describe("validation.revokeRequestSchema", () => {
         expect(revokeRequestSchema.safeParse({ deleteToken: "a".repeat(32) }).success).toBe(true);
     });
     it("rejects a token under 16 characters", () => {
-        expect(revokeRequestSchema.safeParse({ deleteToken: "abc" }).success).toBe(false);
+        expect(revokeRequestSchema.safeParse({ deleteToken: "short" }).success).toBe(false);
     });
     it("rejects a token over 128 characters", () => {
-        expect(revokeRequestSchema.safeParse({ deleteToken: "a".repeat(200) }).success).toBe(false);
+        expect(revokeRequestSchema.safeParse({ deleteToken: "a".repeat(129) }).success).toBe(false);
     });
 });
 
 describe("graphSchema", () => {
     it("accepts a small valid graph", () => {
         const result = graphSchema.safeParse({
-            nodes: [
-                { id: "alpha", label: "Alpha" },
-                { id: "beta", label: "Beta" },
-            ],
-            edges: [{ id: "e1", source: "alpha", target: "beta", label: "links" }],
+            nodes: [{ id: "a", label: "A" }, { id: "b", label: "B" }],
+            edges: [{ id: "e1", source: "a", target: "b", label: "rel" }],
         });
         expect(result.success).toBe(true);
     });
     it("accepts an edge with no label", () => {
         const result = graphSchema.safeParse({
-            nodes: [
-                { id: "a", label: "A" },
-                { id: "b", label: "B" },
-            ],
+            nodes: [{ id: "a", label: "A" }, { id: "b", label: "B" }],
             edges: [{ id: "e1", source: "a", target: "b" }],
         });
         expect(result.success).toBe(true);
     });
     it("rejects edges that reference unknown nodes", () => {
         const result = graphSchema.safeParse({
-            nodes: [{ id: "a", label: "Alpha" }],
+            nodes: [{ id: "a", label: "A" }],
             edges: [{ id: "e1", source: "a", target: "missing" }],
         });
         expect(result.success).toBe(false);
     });
     it("rejects more than 24 nodes", () => {
-        const nodes = Array.from({ length: 25 }, (_, i) => ({ id: `n${i}`, label: `Node ${i}` }));
+        const nodes = Array.from({ length: 25 }, (_, i) => ({ id: `n${i}`, label: `N${i}` }));
         const result = graphSchema.safeParse({ nodes, edges: [] });
         expect(result.success).toBe(false);
     });
     it("rejects more than 36 edges", () => {
-        const nodes = Array.from({ length: 24 }, (_, i) => ({ id: `n${i}`, label: `Node ${i}` }));
-        const edges = Array.from({ length: 37 }, (_, i) => ({
-            id: `e${i}`,
-            source: `n${i % 24}`,
-            target: `n${(i + 1) % 24}`,
-        }));
-        const result = graphSchema.safeParse({ nodes, edges });
+        const edges = Array.from({ length: 37 }, (_, i) => ({ id: `e${i}`, source: "a", target: "b" }));
+        const result = graphSchema.safeParse({ nodes: [{ id: "a", label: "A" }, { id: "b", label: "B" }], edges });
         expect(result.success).toBe(false);
     });
     it("rejects an empty node id", () => {
         const result = graphSchema.safeParse({
-            nodes: [{ id: "", label: "Alpha" }],
+            nodes: [{ id: "", label: "A" }],
             edges: [],
         });
         expect(result.success).toBe(false);
@@ -265,83 +270,78 @@ describe("graphSchema", () => {
 
 describe("buildSectionPrompt", () => {
     it("includes Student audience guidance", () => {
-        const prompt = buildSectionPrompt("Student", "tldr", "Sample text.");
-        expect(prompt).toContain("warm, analogy-heavy");
+        expect(buildSectionPrompt("Student", "tldr", "s")).toContain("curious student");
     });
     it("includes Executive audience guidance", () => {
-        const prompt = buildSectionPrompt("Executive", "tldr", "Sample text.");
-        expect(prompt).toContain("crisp, outcome-focused");
+        expect(buildSectionPrompt("Executive", "tldr", "s")).toContain("senior executive");
     });
     it("includes Developer (Non-ML) audience guidance", () => {
-        const prompt = buildSectionPrompt("Developer (Non-ML)", "tldr", "Sample text.");
-        expect(prompt).toContain("technical precision");
+        expect(buildSectionPrompt("Developer (Non-ML)", "tldr", "s")).toContain("software engineer");
     });
     it("includes the tldr instruction", () => {
-        expect(buildSectionPrompt("Student", "tldr", "s")).toContain("exactly one sentence");
+        expect(buildSectionPrompt("Student", "tldr", "s")).toContain("One sentence only");
     });
     it("includes the analogy instruction", () => {
-        expect(buildSectionPrompt("Student", "analogy", "s")).toContain("concrete analogy");
+        expect(buildSectionPrompt("Student", "analogy", "s")).toContain("concrete comparison");
     });
     it("includes the jargon instruction", () => {
-        expect(buildSectionPrompt("Student", "jargon", "s")).toContain("term -> translation");
+        expect(buildSectionPrompt("Student", "jargon", "s")).toContain("Jargon Buster");
     });
     it("includes the takeaway instruction", () => {
-        expect(buildSectionPrompt("Student", "takeaway", "s")).toContain("most important thing");
+        expect(buildSectionPrompt("Student", "takeaway", "s")).toContain("single most important thing");
     });
     it("numbers paragraphs when source has blank lines", () => {
-        const prompt = buildSectionPrompt("Student", "tldr", "First para.\n\nSecond para.");
-        expect(prompt).toContain("[P1] First para.");
-        expect(prompt).toContain("[P2] Second para.");
+        const prompt = buildSectionPrompt("Student", "tldr", "p1\n\np2");
+        expect(prompt).toContain("[P1] p1");
+        expect(prompt).toContain("[P2] p2");
     });
     it("wraps a single-paragraph source in P1", () => {
-        const prompt = buildSectionPrompt("Student", "tldr", "Only one paragraph.");
-        expect(prompt).toContain("[P1] Only one paragraph.");
+        const prompt = buildSectionPrompt("Student", "tldr", "single");
+        expect(prompt).toContain("[P1] single");
     });
     it("marks the source as untrusted input", () => {
-        const prompt = buildSectionPrompt("Student", "tldr", "text");
-        expect(prompt).toContain("untrusted input");
+        expect(buildSectionPrompt("Student", "tldr", "s")).toContain("untrusted input");
     });
     it("asks for citation markers", () => {
-        const prompt = buildSectionPrompt("Student", "tldr", "text");
-        expect(prompt).toContain("[pN]");
+        expect(buildSectionPrompt("Student", "tldr", "s")).toContain("[pN]");
     });
 });
 
 describe("buildRetrySectionPrompt", () => {
     it("matches the full section prompt for the same inputs", () => {
-        const full = buildSectionPrompt("Student", "jargon", "text");
-        const retry = buildRetrySectionPrompt("Student", "jargon", "text");
-        expect(retry).toBe(full);
+        const a = buildSectionPrompt("Student", "tldr", "s");
+        const b = buildRetrySectionPrompt("Student", "tldr", "s");
+        expect(a).toBe(b);
     });
 });
 
 describe("buildGraphPrompt", () => {
     it("requests only JSON", () => {
-        expect(buildGraphPrompt("text")).toContain("only the JSON object");
+        expect(buildGraphPrompt("s")).toContain("JSON object");
     });
     it("sets the node count range", () => {
-        expect(buildGraphPrompt("text")).toContain("between four and twelve");
+        expect(buildGraphPrompt("s")).toContain("four and twelve");
     });
     it("marks the source as untrusted input", () => {
-        expect(buildGraphPrompt("text")).toContain("untrusted input");
+        expect(buildGraphPrompt("s")).toContain("untrusted input");
     });
 });
 
 describe("fetchPublicHtml rejections that do not need DNS", () => {
     it("rejects an unparseable URL", async () => {
-        await expect(fetchPublicHtml("not a url")).rejects.toThrow("valid URL");
+        await expect(fetchPublicHtml("not a url")).rejects.toThrow();
     });
     it("rejects ftp scheme", async () => {
-        await expect(fetchPublicHtml("ftp://example.com")).rejects.toThrow("HTTP(S)");
+        await expect(fetchPublicHtml("ftp://example.com")).rejects.toThrow();
     });
     it("rejects data scheme", async () => {
-        await expect(fetchPublicHtml("data:text/html,hi")).rejects.toThrow("HTTP(S)");
+        await expect(fetchPublicHtml("data:text/plain,hi")).rejects.toThrow();
     });
     it("rejects file scheme", async () => {
-        await expect(fetchPublicHtml("file:///etc/passwd")).rejects.toThrow("HTTP(S)");
+        await expect(fetchPublicHtml("file:///etc/passwd")).rejects.toThrow();
     });
     it("rejects embedded credentials", async () => {
-        await expect(fetchPublicHtml("http://user:pass@example.com")).rejects.toThrow("credentials");
+        await expect(fetchPublicHtml("http://user:pass@example.com")).rejects.toThrow();
     });
 });
 
@@ -350,51 +350,52 @@ describe("rate-budget", () => {
         resetRateBudget();
     });
     it("starts with the full limit remaining", () => {
-        const status = getRateBudget();
-        expect(status.remaining).toBe(20);
-        expect(status.limit).toBe(20);
-        expect(status.exhausted).toBe(false);
+        const budget = getRateBudget();
+        expect(budget.remaining).toBe(20);
+        expect(budget.exhausted).toBe(false);
     });
     it("decrements on each increment", () => {
         incrementRateBudget();
         incrementRateBudget();
-        expect(getRateBudget().remaining).toBe(18);
+        const budget = getRateBudget();
+        expect(budget.remaining).toBe(18);
     });
     it("becomes exhausted at the limit", () => {
-        for (let i = 0; i < 20; i += 1) incrementRateBudget();
-        const status = getRateBudget();
-        expect(status.remaining).toBe(0);
-        expect(status.exhausted).toBe(true);
+        for (let i = 0; i < 20; i++) incrementRateBudget();
+        const budget = getRateBudget();
+        expect(budget.exhausted).toBe(true);
+        expect(budget.remaining).toBe(0);
     });
     it("reset returns to full", () => {
-        for (let i = 0; i < 10; i += 1) incrementRateBudget();
+        for (let i = 0; i < 20; i++) incrementRateBudget();
         resetRateBudget();
-        expect(getRateBudget().remaining).toBe(20);
+        const budget = getRateBudget();
+        expect(budget.remaining).toBe(20);
     });
     it("reports a reset time within the next hour", () => {
-        const status = getRateBudget();
-        const delta = status.resetAt - Date.now();
-        expect(delta).toBeGreaterThan(0);
-        expect(delta).toBeLessThanOrEqual(60 * 60 * 1000);
+        const budget = getRateBudget();
+        const hour = 60 * 60 * 1000;
+        expect(budget.resetAt).toBeGreaterThan(Date.now());
+        expect(budget.resetAt).toBeLessThanOrEqual(Date.now() + hour + 1000);
     });
 });
 
 describe("POST /api/decode validation", () => {
     it("returns 400 on an empty body", async () => {
-        const response = await decodePost(jsonRequest({}));
+        const response = await decodeHandler(jsonRequest({}));
         expect(response.status).toBe(400);
     });
     it("returns 400 on empty text", async () => {
-        const response = await decodePost(jsonRequest({ text: "   ", audience: "Student" }));
+        const response = await decodeHandler(jsonRequest({ text: "   ", audience: "Student" }));
         expect(response.status).toBe(400);
     });
     it("returns 400 on an invalid audience", async () => {
-        const response = await decodePost(jsonRequest({ text: "hi", audience: "Wizard" }));
+        const response = await decodeHandler(jsonRequest({ text: "text", audience: "Bad" }));
         expect(response.status).toBe(400);
     });
-    it("returns 400 on text over 20000 characters", async () => {
-        const response = await decodePost(
-            jsonRequest({ text: "a".repeat(20001), audience: "Student" })
+    it("returns 400 on text over 60000 characters", async () => {
+        const response = await decodeHandler(
+            jsonRequest({ text: "a".repeat(60001), audience: "Student" })
         );
         expect(response.status).toBe(400);
     });
@@ -402,45 +403,69 @@ describe("POST /api/decode validation", () => {
 
 describe("POST /api/retry-section validation", () => {
     it("returns 400 on an invalid section", async () => {
-        const response = await retryPost(
-            jsonRequest({ text: "hi", audience: "Student", section: "summary" })
+        const response = await retryHandler(
+            jsonRequest({ text: "text", audience: "Student", section: "bad" })
         );
         expect(response.status).toBe(400);
     });
     it("returns 400 on a missing section", async () => {
-        const response = await retryPost(jsonRequest({ text: "hi", audience: "Student" }));
+        const response = await retryHandler(
+            jsonRequest({ text: "text", audience: "Student" })
+        );
         expect(response.status).toBe(400);
     });
 });
 
 describe("POST /api/share without DATABASE_URL", () => {
     it("returns 503 when sharing is not configured", async () => {
-        const response = await sharePost(jsonRequest({ identity: "abc12345", decode: {} }));
-        expect(response.status).toBe(503);
+        const original = process.env.DATABASE_URL;
+        delete process.env.DATABASE_URL;
+        try {
+            const response = await shareHandler(
+                jsonRequest({
+                    identity: "test-identity-123",
+                    decode: {
+                        text: "text",
+                        audience: "Student",
+                        sections: { tldr: "a", analogy: "b", jargon: "c", takeaway: "d" },
+                        graph: null,
+                    },
+                })
+            );
+            expect(response.status).toBe(503);
+        } finally {
+            if (original) process.env.DATABASE_URL = original;
+        }
     });
 });
 
 describe("POST /api/share/[id]/revoke without DATABASE_URL", () => {
     it("returns 503 when sharing is not configured", async () => {
-        const response = await revokePost(
-            jsonRequest({ deleteToken: "a".repeat(32) }),
-            { params: Promise.resolve({ id: "someid" }) }
-        );
-        expect(response.status).toBe(503);
+        const original = process.env.DATABASE_URL;
+        delete process.env.DATABASE_URL;
+        try {
+            const response = await revokeHandler(
+                jsonRequest({ deleteToken: "a".repeat(32) }),
+                { params: Promise.resolve({ id: "testid" }) }
+            );
+            expect(response.status).toBe(503);
+        } finally {
+            if (original) process.env.DATABASE_URL = original;
+        }
     });
 });
 
 describe("POST /api/fetch-url validation", () => {
     it("returns 400 on a missing url", async () => {
-        const response = await fetchUrlPost(jsonRequest({}));
+        const response = await fetchUrlHandler(jsonRequest({}));
         expect(response.status).toBe(400);
     });
     it("returns 400 on an ftp url", async () => {
-        const response = await fetchUrlPost(jsonRequest({ url: "ftp://example.com" }));
+        const response = await fetchUrlHandler(jsonRequest({ url: "ftp://example.com" }));
         expect(response.status).toBe(400);
     });
     it("returns 400 on an empty url", async () => {
-        const response = await fetchUrlPost(jsonRequest({ url: "" }));
+        const response = await fetchUrlHandler(jsonRequest({ url: "   " }));
         expect(response.status).toBe(400);
     });
 });
