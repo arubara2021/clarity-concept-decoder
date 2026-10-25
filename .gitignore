@@ -37,3 +37,7 @@ next-env.d.ts
 /devpost/SUBMISSION-DRAFT.md
 /devpost/*.html
 
+
+# local scratch
+/project-dump.txt
+
