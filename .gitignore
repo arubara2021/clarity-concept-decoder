@@ -31,3 +31,9 @@ yarn-error.log*
 
 *.tsbuildinfo
 next-env.d.ts
+# devpost working docs (kept local only)
+/devpost/checklist.md
+/devpost/UPGRADE-PLAN.md
+/devpost/SUBMISSION-DRAFT.md
+/devpost/*.html
+
